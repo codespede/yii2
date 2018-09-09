@@ -17,6 +17,7 @@ Yii Framework 2 Change Log
 - Bug #16006: Handle case when `X-Forwarded-Host` header have multiple hosts separated with a comma (pgaultier)
 - Bug #16010: Fixed `yii\filters\ContentNegotiator` behavior when GET parameters contain an array (rugabarbo)
 - Bug #14660: Fixed `yii\caching\DbCache` concurrency issue when set values with the same key (rugabarbo)
+- Bug #15802: Fixed exception class in yii\di\Container (vuchastyi, developeruz)
 - Bug #15988: Fixed bash completion (alekciy)
 - Bug #15798: Fixed render `yii\grid\RadioButtonColumn::$content` and `yii\grid\CheckboxColumn::$content` (lesha724)
 - Bug #15548: Fixed index names collision in RBAC (gonimar)
@@ -44,9 +45,10 @@ Yii Framework 2 Change Log
 - Bug #16377: Fixed `yii\base\Event:off()` undefined index error when event handler does not match (razvanphp)
 - Bug #16514: Fixed `yii\di\Container::resolveCallableDependencies` to support callable object (wi1dcard)
 - Bug #15889: Fixed override `yii\helpers\Html::setActivePlaceholder` (lesha724)
-- Bug #16552: Added check in `yii\db\ActiveQuery::prepare()` to prevent populating already populated relation when another relation is requested with `via` (drlibra)
 - Enh #16522: Allow jQuery 3.3 (Slamdunk)
-- Enh #16603: Added `yii\mutex\FileMutex::$isWindows` for Windows file shares on Unix guest machines (brandonkelly)  
+- Enh #16603: Added `yii\mutex\FileMutex::$isWindows` for Windows file shares on Unix guest machines (brandonkelly)
+- Bug #16666: Fixed `yii\helpers\ArrayHelper::merge` (rustamwin)
+- Enh: `yii\helpers\UnsetArrayValue`, `yii\helpers\ReplaceArrayValue` object now can be restored after serialization using `var_export()` function (silvefire)
 
 2.0.15.1 March 21, 2018
 -----------------------
