@@ -4,6 +4,7 @@ Yii Framework 2 Change Log
 2.0.16 under development
 ------------------------
 
+- Bug #5341: HasMany via two relations (shirase, cebe)
 - Bug #16558: Added cloning `yii\data\ActiveDataProvider::query` property when ActiveDataProvider object is cloned (mgrechanik)
 - Bug #14901: Fixed trim validation for radio/checkbox button (s1lver)
 - Bug #16527: Fixed return content for `\yii\widgets\ActiveForm::run()` (carono)
@@ -49,6 +50,7 @@ Yii Framework 2 Change Log
 - Enh #16603: Added `yii\mutex\FileMutex::$isWindows` for Windows file shares on Unix guest machines (brandonkelly)
 - Bug #16666: Fixed `yii\helpers\ArrayHelper::merge` (rustamwin)
 - Enh: `yii\helpers\UnsetArrayValue`, `yii\helpers\ReplaceArrayValue` object now can be restored after serialization using `var_export()` function (silvefire)
+- Bug #16552: Added check in `yii\db\ActiveQuery::prepare()` to prevent populating already populated relation when another relation is requested with `via` (drlibra)
 
 2.0.15.1 March 21, 2018
 -----------------------
