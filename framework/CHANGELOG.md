@@ -4,6 +4,10 @@ Yii Framework 2 Change Log
 2.0.16 under development
 ------------------------
 
+- Enh #16151: Change of scope for method `getTableNameAndAlias()` (s1lver)
+- Bug #14230: Fixed `itemsOptions` ignored in `checkBoxList` (s1lver)
+- Bug #14368: Added `role` attribute for active radio list (s1lver)
+- Bug #16680: Fixed ActiveField 'text' input with maxlength (s1lver)
 - Bug #5341: HasMany via two relations (shirase, cebe)
 - Bug #16558: Added cloning `yii\data\ActiveDataProvider::query` property when ActiveDataProvider object is cloned (mgrechanik)
 - Bug #14901: Fixed trim validation for radio/checkbox button (s1lver)
