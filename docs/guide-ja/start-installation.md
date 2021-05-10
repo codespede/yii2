@@ -114,7 +114,7 @@ composer create-project --prefer-dist yiisoft/yii2-app-basic basic
 アセットをインストールする <span id="installing-assets"></span>
 --------------------------
 
-Yii は、アセット (CSS および JavaScript) ライブラリのインストールについて [Bower](http://bower.io/) および/または [NPM](https://www.npmjs.org/) のパッケージに依存しています。
+Yii は、アセット (CSS および JavaScript) ライブラリのインストールについて [Bower](http://bower.io/) および/または [NPM](https://www.npmjs.com/) のパッケージに依存しています。
 Yii はこれらのライブラリを取得するのに Composer を使って、PHP と CSS/JavaScript のパッケージ・バージョンを同時に解決できるようにしています。
 このことは、[asset-packagist.org](https://asset-packagist.org) または [composer asset plugin](https://github.com/francoispluchino/composer-asset-plugin/) を使用することによって達成されます。
 詳細は [アセットのドキュメント](structure-assets.md) を参照して下さい。
@@ -174,7 +174,7 @@ http://localhost:8080/
 
 Yii の最低必要条件を満たすように PHP のインストールを構成しなければなりません。
 最も重要なことは、PHP 5.4 以上でなければならないということです。最新の PHP 7 なら理想的です。
-また、アプリケーションがデータベースを必要とする場合は、[PDO PHP 拡張](http://www.php.net/manual/ja/pdo.installation.php) および対応するデータベース・ドライバ (MySQL データベースのための `pdo_mysql` など) をインストールしなければなりません。
+また、アプリケーションがデータベースを必要とする場合は、[PDO PHP 拡張](https://secure.php.net/manual/ja/pdo.installation.php) および対応するデータベース・ドライバ (MySQL データベースのための `pdo_mysql` など) をインストールしなければなりません。
 
 
 ウェブ・サーバを構成する <span id="configuring-web-servers"></span>
@@ -218,14 +218,16 @@ DocumentRoot "path/to/basic/web"
 <Directory "path/to/basic/web">
     # 綺麗な URL をサポートするために mod_rewrite を使う
     RewriteEngine on
-    # ディレクトリかファイルが存在する場合は、リクエストをそのまま通す
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    # そうでなければ、リクエストを index.php に送付する
-    RewriteRule . index.php
 
     # UrlManager の $showScriptName が false の場合は、スクリプト名で URL にアクセスすることを許さない
     RewriteRule ^index.php/ - [L,R=404]
+
+    # ディレクトリかファイルが存在する場合は、リクエストをそのまま通す
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # そうでなければ、リクエストを index.php に送付する
+    RewriteRule . index.php
 
     # ... 他の設定 ...
 </Directory>
@@ -234,7 +236,7 @@ DocumentRoot "path/to/basic/web"
 
 ### 推奨される Nginx の構成 <span id="recommended-nginx-configuration"></span>
 
-[Nginx](http://wiki.nginx.org/) を使うためには、PHP を [FPM SAPI](http://jp1.php.net/install.fpm) としてインストールしなければなりません。
+[Nginx](http://wiki.nginx.org/) を使うためには、PHP を [FPM SAPI](https://secure.php.net/manual/ja/install.fpm.php) としてインストールしなければなりません。
 下記の Nginx の設定を使うことができます。
 `path/to/basic/web` の部分を `basic/web` の実際のパスに置き換え、`mysite.test` を実際のサーバのホスト名に置き換えてください。
 
@@ -288,3 +290,93 @@ server {
 
 また、HTTPS サーバを走らせている場合には、安全な接続であることを Yii が正しく検知できるように、
 `fastcgi_param HTTPS on;` を追加しなければならないことにも注意を払ってください。
+
+### 推奨される NGINX Unit の構成<span id="recommended-nginx-unit-configuration"></span>
+
+[NGINX Unit](https://unit.nginx.org/) と PHP 言語モジュールを使って Yii ベースのアプリを走らせることが出来ます。
+その構成のサンプルです。
+
+```json
+{
+    "listeners": {
+        "*:80": {
+            "pass": "routes/yii"
+        }
+    },
+
+    "routes": {
+        "yii": [
+            {
+                "match": {
+                    "uri": [
+                        "!/assets/*",
+                        "*.php",
+                        "*.php/*"
+                    ]
+                },
+
+                "action": {
+                    "pass": "applications/yii/direct"
+                }
+            },
+            {
+                "action": {
+                    "share": "/path/to/app/web/",
+                    "fallback": {
+                        "pass": "applications/yii/index"
+                    }
+                }
+            }
+        ]
+    },
+
+    "applications": {
+        "yii": {
+            "type": "php",
+            "user": "www-data",
+            "targets": {
+                "direct": {
+                    "root": "/path/to/app/web/"
+                },
+
+                "index": {
+                    "root": "/path/to/app/web/",
+                    "script": "index.php"
+                }
+            }
+        }
+    }
+}
+```
+
+また、自分の PHP 環境を [セットアップ](https://unit.nginx.org/configuration/#php) したり、この同じ構成でカスタマイズした `php.ini` を提供したりすることも出来ます。
+
+### IIS の構成 <span id="iis-configuration"></span>
+
+ドキュメント・ルートが `path/to/app/web` フォルダを指し、PHP を実行するように構成された仮想ホスト (ウェブ・サイト) でアプリケーションをホストすることを推奨します。その `web` フォルダに `web.config` という名前のファイル、すなわち `path/to/app/web/web.config` を配置しなければなりません。ファイルの内容は以下の通りです。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+<system.webServer>
+<directoryBrowse enabled="false" />
+  <rewrite>
+    <rules>
+      <rule name="Hide Yii Index" stopProcessing="true">
+        <match url="." ignoreCase="false" />
+        <conditions>
+        <add input="{REQUEST_FILENAME}" matchType="IsFile" 
+              ignoreCase="false" negate="true" />
+        <add input="{REQUEST_FILENAME}" matchType="IsDirectory" 
+              ignoreCase="false" negate="true" />
+        </conditions>
+        <action type="Rewrite" url="index.php" appendQueryString="true" />
+      </rule> 
+    </rules>
+  </rewrite>
+</system.webServer>
+</configuration>
+```
+また、IIS 上で PHP を構成するためには、以下にリストした Microsoft の公式リソースが有用でしょう。
+ 1. [IIS の最初の Web サイトを構成する方法](https://support.microsoft.com/ja-jp/help/323972/how-to-set-up-your-first-iis-web-site)
+ 2. [Configure a PHP Website on IIS](https://docs.microsoft.com/en-us/iis/application-frameworks/scenario-build-a-php-website-on-iis/configure-a-php-website-on-iis)

@@ -2,7 +2,7 @@ Security best practices
 =======================
 
 Below we'll review common security principles and describe how to avoid threats when developing applications using Yii.
-Most of these priciples are not unique to Yii alone but apply to website or software development in general,
+Most of these principles are not unique to Yii alone but apply to website or software development in general,
 so you will also find links for further reading on the general ideas behind these.
 
 
@@ -158,18 +158,28 @@ Avoiding CSRF
 -------------
 
 CSRF is an abbreviation for cross-site request forgery. The idea is that many applications assume that requests coming
-from a user browser are made by the user himself. It could be `false`.
+from a user browser are made by the user themselves. This assumption could be false.
 
-For example, `an.example.com` website has `/logout` URL that, when accessed using a simple GET, logs user out. As long
-as it's requested by the user itself everything is OK but one day bad guys are somehow posting
-`<img src="http://an.example.com/logout">` on a forum user visits frequently. Browser doesn't make any difference between
-requesting an image or requesting a page so when user opens a page with such `img` tag, the browser will send the GET request to that URL, and the user will be logged out from `an.example.com`. 
+For example, the website `an.example.com` has a `/logout` URL that, when accessed using a simple GET request, logs the user out. As long
+as it's requested by the user themselves everything is OK, but one day bad guys are somehow posting
+`<img src="http://an.example.com/logout">` on a forum the user visits frequently. The browser doesn't make any difference between
+requesting an image or requesting a page so when the user opens a page with such a manipulated `<img>` tag,
+the browser will send the GET request to that URL and the user will be logged out from `an.example.com`.
 
-That's the basic idea. One can say that logging user out is nothing serious, but bad guys can do much more, using this idea. Imagine that some website has an URL `http://an.example.com/purse/transfer?to=anotherUser&amount=2000`. Accessing it using GET request, causes transfer of $2000 from authorized user account to user `anotherUser`. We know, that browser will always send GET request to load an image, so we can modify code to accept only POST requests on that URL. Unfortunately, this will not save us, because an attacker can put some JavaScript code instead of `<img>` tag, which allows to send POST requests on that URL.
+That's the basic idea of how a CSRF attack works. One can say that logging out a user is not a serious thing,
+however this was just an example, there are much more things one could do using this approach, for example triggering payments
+or changing data. Imagine that some website has an URL
+`http://an.example.com/purse/transfer?to=anotherUser&amount=2000`. Accessing it using GET request, causes transfer of $2000
+from authorized user account to user `anotherUser`. We know, that the browser will always send GET request to load an image,
+so we can modify code to accept only POST requests on that URL. Unfortunately, this will not save us, because an attacker
+can put some JavaScript code instead of `<img>` tag, which allows to send POST requests to that URL as well.
+
+For this reason, Yii applies additional mechanisms to protect against CSRF attacks.
 
 In order to avoid CSRF you should always:
 
 1. Follow HTTP specification i.e. GET should not change application state.
+   See [RFC2616](https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html) for more details.
 2. Keep Yii CSRF protection enabled.
 
 Sometimes you need to disable CSRF validation per controller and/or action. It could be achieved by setting its property:
@@ -243,9 +253,15 @@ class ContactAction extends Action
 
 > Warning: Disabling CSRF will allow any site to send POST requests to your site. It is important to implement extra validation such as checking an IP address or a secret token in this case.
 
+> Note: Since version 2.0.21 Yii supports the `sameSite` cookie setting (requires PHP version 7.3.0 or higher).
+  Setting the `sameSite` cookie setting does not make the above obsolete since not all browsers support the setting yet.
+  See the [Sessions and Cookies sameSite option](runtime-sessions-cookies.md#samesite) for more information.
+
 Further reading on the topic:
 
 - <https://www.owasp.org/index.php/CSRF>
+- <https://www.owasp.org/index.php/SameSite>
+
 
 Avoiding file exposure
 ----------------------
@@ -290,6 +306,10 @@ provided by the H5BP project:
 - [IIS](https://github.com/h5bp/server-configs-iis).
 - [Lighttpd](https://github.com/h5bp/server-configs-lighttpd).
 
+> Note: When TLS is configured it is recommended that (session) cookies are sent over TLS exclusively.
+  This is achieved by setting the `secure` flag for sessions and/or cookies.
+  See the [Sessions and Cookies secure flag](runtime-sessions-cookies.md#secure) for more information.
+
 
 Secure Server configuration
 ---------------------------
@@ -333,3 +353,29 @@ return [
 
 > Note: you should always prefer web server configuration for 'host header attack' protection instead of the filter usage.
   [[yii\filters\HostControl]] should be used only if server configuration setup is unavailable.
+
+### Configuring SSL peer validation
+
+There is a typical misconception about how to solve SSL certificate validation issues such as:
+
+```
+cURL error 60: SSL certificate problem: unable to get local issuer certificate
+```
+
+or
+
+```
+stream_socket_enable_crypto(): SSL operation failed with code 1. OpenSSL Error messages: error:1416F086:SSL routines:tls_process_server_certificate:certificate verify failed
+```
+
+Many sources wrongly suggest disabling SSL peer verification. That should not be ever done since it enables
+man-in-the middle type of attacks. Instead, PHP should be configured properly:
+
+1. Download [https://curl.haxx.se/ca/cacert.pem](https://curl.haxx.se/ca/cacert.pem).
+2. Add the following to your php.ini:
+  ```
+  openssl.cafile="/path/to/cacert.pem"
+  curl.cainfo="/path/to/cacert.pem".
+  ```
+
+Note that the `cacert.pem` file should be kept up to date.
